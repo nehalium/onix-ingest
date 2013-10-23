@@ -3,40 +3,45 @@ declare option output:cdata-section-elements "description";
 
 (: ----------- USER-DEFINED FUNCTIONS ----------- :)
 (: Returns digit from ISBN at specified index, 10 for X :)
-declare function local:isbnDigit($isbn, $index) as xs:int{
+declare function local:isbnDigit($isbn, $index) as xs:integer{
   if (fn:lower-case(fn:substring($isbn, $index, 1)) = 'x') then
     xs:int(10)
   else
     xs:int(fn:substring($isbn, $index, 1))
 };
-(: Returns the sum value for specified ISBN10 for calculating the checksum :)
-declare function local:ISBN10Sum($isbn10) as xs:boolean{
+(: Returns the converted values of an ISBN13 string as an array :)
+declare function local:ISBN10Values($isbn10){
   let $isbn := fn:translate($isbn10, '-', '')
   for $i in 1 to 9 
-  let $values := local:isbnDigit($isbn, $i) * (10 - ($i - 1))
-  return fn:sum($values)
+  return local:isbnDigit($isbn, $i) * (10 - ($i - 1))
+};
+(: Returns the sum value for specified ISBN10 for calculating the checksum :)
+declare function local:ISBN10Sum($isbn10) as xs:integer{
+  fn:sum(local:ISBN10Values($isbn10))
 };
 (: Checks if a specified ISBN10 is valid :)
 declare function local:isISBN10Valid($isbn10) as xs:boolean{
   local:ISBN10Sum($isbn10) mod 11 = 0
 };
-(: Returns the sum value for specified ISBN13 for calculating the checksum :)
-declare function local:ISBN13Sum($isbn13) as xs:int{
+(: Returns the converted values of an ISBN13 string as an array :)
+declare function local:ISBN13Values($isbn13){
   let $isbn := fn:translate($isbn13, '-', '')
   for $i in 1 to 12
-  let $values := local:isbnDigit($isbn, $i) * (1 + (2 *(($i + 1) mod 2)))
-  return fn:sum($values)
+  return xs:integer(local:isbnDigit($isbn, $i) * (1 + (2 *(($i + 1) mod 2))))
+};
+(: Returns the sum value for specified ISBN13 for calculating the checksum :)
+declare function local:ISBN13Sum($isbn13) as xs:integer{
+  fn:sum(local:ISBN13Values($isbn13))
 };
 (: Checks if a specified ISBN13 is valid :)
 declare function local:isISBN13Valid($isbn13) as xs:boolean{
-  (:local:ISBN13Sum($isbn13) mod 10 = 0:)
-  true()
+  local:ISBN13Sum($isbn13) mod 10 = 0
 };
 (: Converts an ISBN10 to an ISBN13  :)
 declare function local:ISBN10To13($isbn10) as xs:string{
-  let $isbn := '978' + fn:translate($isbn10, '-', '')
+  let $isbn := fn:concat('978', fn:translate($isbn10, '-', ''))
   let $isbnWithoutCheckSum := fn:substring($isbn, 1, 12)
-  return $isbnWithoutCheckSum + (10 - local:ISBN13Sum($isbnWithoutCheckSum))
+  return fn:concat($isbnWithoutCheckSum, (10 - local:ISBN13Sum($isbnWithoutCheckSum)))
 };
 (: Removes punctuation and symbols from a given string :)
 declare function local:stripPunctuationAndSymbols($text) as xs:string{
