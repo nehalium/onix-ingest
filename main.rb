@@ -4,6 +4,7 @@
 # and insert the data into a database
 # 
 # Dependencies:
+#   Ruby 1.9.3 (https://www.ruby-lang.org/en/downloads/)
 #   Base-X (http://basex.org/)
 #   MySQL (http://dev.mysql.com/downloads/)
 #
