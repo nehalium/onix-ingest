@@ -63,12 +63,26 @@ def import_to_database(record)
   names = Array.new
   values = Array.new
   record.xpath("/record/product/*").each do |node|
-    names << node.name
-    values << "'#{Mysql.escape_string(node.text)}'"
+    if (node.xpath("@ignore").text != "true")
+      names << node.name
+      type = node.xpath("@type").text
+      value = Mysql.escape_string(node.text)
+      case type
+        when "varchar", "char", "text"
+          values << "'#{value}'"
+        else
+          values << (value != '')? value : "NULL"
+      end
+    end
   end
+  names << "opened"
+  values << "'#{Time.now.strftime("%Y-%m-%d %H:%M:%S")}'"
+  names << "updated"
+  values << "'#{Time.now.strftime("%Y-%m-%d %H:%M:%S")}'"
+  
   loginfo("Inserting into DB...")
-  sql = "INSERT INTO file_data (#{names.join(',')}) VALUES (#{values.join(',')})"
-  loginfo("#{sql}\n")
+  sql = "INSERT INTO productmasterfile (#{names.join(',')}) VALUES (#{values.join(',')});"
+  loginfo("\n#{sql}\n")
   db = Mysql.new(MYSQL_HOST, MYSQL_USERNAME, MYSQL_PASSWORD, MYSQL_DATABASE)
   db.query(sql)
   #st = db.prepare(sql)

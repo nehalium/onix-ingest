@@ -356,53 +356,53 @@ return
   <defaultWeightUnit>{$defaultWeightUnit}</defaultWeightUnit>
 </header>
 <product>
-  <productRef>{$productRef}</productRef>
-  <PPN>{$PPN}</PPN>
-  <ISBN10>{$ISBN10}</ISBN10>
-  <ISBN13>{$ISBN13}</ISBN13>
-  <EAN13>{$EAN13}</EAN13>
-  <UPC>{$UPC}</UPC>
-  <ISMN>{$ISMN}</ISMN>
-  <DOI>{$DOI}</DOI>
-  <LCCN>{$LCCN}</LCCN>
-  <GTIN14>{$GTIN14}</GTIN14>
-  <publisher>{$publisher}</publisher>
-  <format>{$format}</format>
-  <formDetail>{$formDetail}</formDetail>
-  <formatDescription>{$formatDescription}</formatDescription>
-  <seriesTitle>{$seriesTitle}</seriesTitle>
-  <seriesTitleNoPrefix>{$seriesTitleNoPrefix}</seriesTitleNoPrefix>
-  <seriesTitlePrefix>{$seriesTitlePrefix}</seriesTitlePrefix>
-  <title>{$title}</title>
-  <titleNoPrefix>{$titleNoPrefix}</titleNoPrefix>
-  <titlePrefix>{$titlePrefix}</titlePrefix>
-  <tTitle>{$tTitle}</tTitle>
-  <nptTitle>{$nptTitle}</nptTitle>
-  <npSubtitle>{$npSubtitle}</npSubtitle>
-  <npSeriesTitle>{$npSeriesTitle}</npSeriesTitle>
-  <author>{$author}</author>
-  <illustrator>{$illustrator}</illustrator>
-  <translator>{$translator}</translator>
-  <bisac>{$bisac}</bisac>
-  <edition>{$edition}</edition>
-  <description>{$description}</description>
-  <imprint>{$imprint}</imprint>
-  <copyright>{$copyright}</copyright>
-  <height>{$height}</height>
-  <width>{$width}</width>
-  <depth>{$depth}</depth>
-  <weight>{$weight}</weight>
-  <dimensionsUM>{$dimensionsUM}</dimensionsUM>
-  <weightUM>{$weightUM}</weightUM>
-  <supplier>{$supplier}</supplier>
-  <availability>{$availability}</availability>
-  <expected>{$expected}</expected>
-  <caseQty>{$caseQty}</caseQty>
-  <price>{$price}</price>
-  <netPrice>{$netPrice}</netPrice>
-  <deducedPrice>{$deducedPrice}</deducedPrice>
-  <priceTypeCode>{$priceTypeCode}</priceTypeCode>
-  <denomination>{$denomination}</denomination>
-  <stockedBy>0</stockedBy>
+  <ONIXProductRef type="decimal">{$productRef}</ONIXProductRef>
+  <PPN type="varchar">{$PPN}</PPN>
+  <ISBN10 type="varchar">{$ISBN10}</ISBN10>
+  <ISBN13 type="varchar">{$ISBN13}</ISBN13>
+  <EAN13 type="varchar">{$EAN13}</EAN13>
+  <UPC type="varchar">{$UPC}</UPC>
+  <ISMN type="varchar">{$ISMN}</ISMN>
+  <DOI type="varchar">{$DOI}</DOI>
+  <LCCN type="varchar">{$LCCN}</LCCN>
+  <GTIN14 type="varchar">{$GTIN14}</GTIN14>
+  <publisher type="varchar" ignore="true">{$publisher}</publisher>
+  <format type="char">{$format}</format>
+  <formDetail type="varchar">{$formDetail}</formDetail>
+  <formatDescription type="varchar">{$formatDescription}</formatDescription>
+  <seriesTitle type="varchar">{$seriesTitle}</seriesTitle>
+  <seriesTitleNoPrefix type="varchar" ignore="true">{$seriesTitleNoPrefix}</seriesTitleNoPrefix>
+  <seriesTitlePrefix type="varchar" ignore="true">{$seriesTitlePrefix}</seriesTitlePrefix>
+  <title type="varchar">{$title}</title>
+  <titleNoPrefix type="varchar" ignore="true">{$titleNoPrefix}</titleNoPrefix>
+  <titlePrefix type="varchar" ignore="true">{$titlePrefix}</titlePrefix>
+  <tTitle type="varchar">{$tTitle}</tTitle>
+  <nptTitle type="varchar">{$nptTitle}</nptTitle>
+  <npSubtitle type="varchar">{$npSubtitle}</npSubtitle>
+  <npSeriesTitle type="varchar">{$npSeriesTitle}</npSeriesTitle>
+  <author type="varchar">{$author}</author>
+  <illustrator type="varchar">{$illustrator}</illustrator>
+  <translator type="varchar">{$translator}</translator>
+  <bisac type="varchar">{$bisac}</bisac>
+  <edition type="varchar">{$edition}</edition>
+  <descriptions type="text">{$description}</descriptions>
+  <imprint type="varchar">{$imprint}</imprint>
+  <copyright type="varchar">{$copyright}</copyright>
+  <height type="decimal">{$height}</height>
+  <width type="decimal">{$width}</width>
+  <depth type="decimal">{$depth}</depth>
+  <weight type="decimal">{$weight}</weight>
+  <dimensionsUM type="varchar">{$dimensionsUM}</dimensionsUM>
+  <weightUM type="varchar">{$weightUM}</weightUM>
+  <supplier type="varchar">{$supplier}</supplier>
+  <availability type="varchar">{$availability}</availability>
+  <expected type="varchar">{$expected}</expected>
+  <caseQty type="int">{$caseQty}</caseQty>
+  <price type="varchar">{$price}</price>
+  <netPrice type="varchar">{$netPrice}</netPrice>
+  <deducedPrice type="bit">{$deducedPrice}</deducedPrice>
+  <priceTypeCode type="varchar" ignore="true">{$priceTypeCode}</priceTypeCode>
+  <denomination type="varchar">{$denomination}</denomination>
+  <stockedBy type="int">0</stockedBy>
 </product>
 </record>
