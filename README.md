@@ -1,4 +1,23 @@
 onix-ingest
 ===========
 
-Application for ingesting ONIX feeds
+A simple application for ingesting ONIX feeds.
+
+# Installation
+
+1. Install [Base-X](http://basex.org/)
+1. Install [Ruby 1.9.3](https://www.ruby-lang.org/en/downloads/)
+1. Install the following Ruby gem:
+	* RubyZip: `gem install rubyzip`
+	* Nokogiri: `gem install nokogiri`
+	* MySQL: `gem install mysql`
+
+# Usage
+
+1. Configure main.rb for your environment
+1. Start the Base-X server
+1. Run main.rb:
+
+	main.rb
+
+
