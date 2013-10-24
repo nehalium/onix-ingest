@@ -32,11 +32,27 @@ BASEX_PASSWORD = "admin"
 MYSQL_HOST = "localhost"
 MYSQL_USERNAME = "root"
 MYSQL_PASSWORD = "root"
-MYSQL_DATABASE = "onix" 
+MYSQL_DATABASE = "onix"
+LOGGING_DAYS = 5
+VERBOSE_LOGGING = false
+
+
+# Utility function to create a directory
+def create_dir(target)
+  FileUtils.mkpath(target)
+end
+
+# Utility function to delete old log files
+def delete_old_logs(target)
+  Dir.glob(File.join(target, "*.log")).each do |file| 
+    File.delete(file) if (Time.now - File.ctime(file))/(24*3600) > LOGGING_DAYS 
+  end
+end
 
 # Initialize logger
-FileUtils.mkpath(LOG_DIR)
-$logger = Logger.new("#{LOG_DIR}/run_#{Time.now.strftime("%m-%d-%Y--%H-%M-%S")}.log")
+create_dir(LOG_DIR)
+delete_old_logs(LOG_DIR)
+$logger = Logger.new("#{LOG_DIR}/run_#{Time.now.strftime("%Y-%m-%d--%H-%M-%S")}.log")
 $logger.formatter = proc do |severity, datetime, progname, msg|
    "[#{datetime}]:#{severity}::#{msg}"
 end
@@ -68,10 +84,10 @@ def import_to_database(record)
       type = node.xpath("@type").text
       value = Mysql.escape_string(node.text)
       case type
-        when "varchar", "char", "text"
-          values << "'#{value}'"
-        else
+        when "decimal", "int", "bit"
           values << (value != '')? value : "NULL"
+        else
+          values << "'#{value}'"
       end
     end
   end
@@ -80,14 +96,15 @@ def import_to_database(record)
   names << "updated"
   values << "'#{Time.now.strftime("%Y-%m-%d %H:%M:%S")}'"
   
-  loginfo("Inserting into DB...")
   sql = "INSERT INTO productmasterfile (#{names.join(',')}) VALUES (#{values.join(',')});"
-  loginfo("\n#{sql}\n")
+
+  if (VERBOSE_LOGGING)
+    loginfo("SQL: #{sql}\n")
+  end
   db = Mysql.new(MYSQL_HOST, MYSQL_USERNAME, MYSQL_PASSWORD, MYSQL_DATABASE)
   db.query(sql)
   #st = db.prepare(sql)
   #st.execute(values)
-  loginfo("Done.\n")
 rescue Mysql::Error => e
   logerror("[MYSQL] #{e.errno}:#{e.error}\n")
 ensure
@@ -135,7 +152,7 @@ end
 
 # Archives XML files to a specified directory
 def archive_files(source, target)
-  FileUtils.mkpath(target)
+  create_dir(target)
   Dir.glob(File.join(source, "**", "*.xml")).each do |file|
     loginfo("Archiving #{file} to archive directory...")
     FileUtils.mv(file, target)
@@ -157,11 +174,11 @@ end
 def unzip_files(target)
   Dir.glob(File.join(target, "*.zip")).each do |file|
     loginfo("Unzipping #{file}...")
-    Zip::File.open(file) { |zipFile|
-      zipFile.each { |zip|
+    Zip::File.open(file) do |zipFile|
+      zipFile.each do |zip|
         zipFile.extract(zip, File.join(target, zip.name))
-      }
-    }
+      end
+    end
     loginfo("Done.\n")
   end
 end
@@ -169,7 +186,7 @@ end
 # Copes files from source to target directory
 def copy_files(source, target)
   delete_files_in_dir(target)
-  FileUtils.mkpath(target)
+  create_dir(target)
   Dir.glob(File.join(source, "**", "*.{zip,xml}")).each do |file|
     loginfo("Copying #{file} to process directory...")
     FileUtils.cp(file, target)

@@ -16,12 +16,12 @@ declare function local:ISBN10Values($isbn10){
   return local:isbnDigit($isbn, $i) * (10 - ($i - 1))
 };
 (: Returns the sum value for specified ISBN10 for calculating the checksum :)
-declare function local:ISBN10Sum($isbn10) as xs:integer{
-  fn:sum(local:ISBN10Values($isbn10))
+declare function local:ISBN10CheckSum($isbn10) as xs:integer{
+  fn:sum(local:ISBN10Values($isbn10)) mod 11
 };
 (: Checks if a specified ISBN10 is valid :)
 declare function local:isISBN10Valid($isbn10) as xs:boolean{
-  local:ISBN10Sum($isbn10) mod 11 = 0
+  local:ISBN10CheckSum($isbn10) = 0
 };
 (: Returns the converted values of an ISBN13 string as an array :)
 declare function local:ISBN13Values($isbn13){
@@ -30,18 +30,18 @@ declare function local:ISBN13Values($isbn13){
   return xs:integer(local:isbnDigit($isbn, $i) * (1 + (2 *(($i + 1) mod 2))))
 };
 (: Returns the sum value for specified ISBN13 for calculating the checksum :)
-declare function local:ISBN13Sum($isbn13) as xs:integer{
-  fn:sum(local:ISBN13Values($isbn13))
+declare function local:ISBN13CheckSum($isbn13) as xs:integer{
+  fn:sum(local:ISBN13Values($isbn13)) mod 10
 };
 (: Checks if a specified ISBN13 is valid :)
 declare function local:isISBN13Valid($isbn13) as xs:boolean{
-  local:ISBN13Sum($isbn13) mod 10 = 0
+  local:ISBN13CheckSum($isbn13) = 0
 };
 (: Converts an ISBN10 to an ISBN13  :)
 declare function local:ISBN10To13($isbn10) as xs:string{
   let $isbn := fn:concat('978', fn:translate($isbn10, '-', ''))
   let $isbnWithoutCheckSum := fn:substring($isbn, 1, 12)
-  return fn:concat($isbnWithoutCheckSum, (10 - local:ISBN13Sum($isbnWithoutCheckSum)))
+  return fn:concat($isbnWithoutCheckSum, (10 - (local:ISBN13CheckSum($isbnWithoutCheckSum))))
 };
 (: Removes punctuation and symbols from a given string :)
 declare function local:stripPunctuationAndSymbols($text) as xs:string{
@@ -360,6 +360,7 @@ return
   <PPN type="varchar">{$PPN}</PPN>
   <ISBN10 type="varchar">{$ISBN10}</ISBN10>
   <ISBN13 type="varchar">{$ISBN13}</ISBN13>
+  <ISBN13Found type="varchar" ignore="true">{$ISBN13Found}</ISBN13Found>
   <EAN13 type="varchar">{$EAN13}</EAN13>
   <UPC type="varchar">{$UPC}</UPC>
   <ISMN type="varchar">{$ISMN}</ISMN>
@@ -396,7 +397,7 @@ return
   <weightUM type="varchar">{$weightUM}</weightUM>
   <supplier type="varchar">{$supplier}</supplier>
   <availability type="varchar">{$availability}</availability>
-  <expected type="varchar">{$expected}</expected>
+  <expected type="int">{$expected}</expected>
   <caseQty type="int">{$caseQty}</caseQty>
   <price type="varchar">{$price}</price>
   <netPrice type="varchar">{$netPrice}</netPrice>

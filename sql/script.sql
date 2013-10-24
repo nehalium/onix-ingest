@@ -1,5 +1,5 @@
 CREATE TABLE `productmasterfile` (
-  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `id` bigint(20) NOT NULL AUTO_INCREMENT,
   `ONIXProductRef` decimal(18,0) DEFAULT NULL,
   `PPN` varchar(50) DEFAULT NULL,
   `ISBN10` varchar(10) DEFAULT NULL,
