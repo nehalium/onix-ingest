@@ -14,7 +14,7 @@ A simple application for ingesting ONIX feeds.
 
 # Usage
 
-1. Configure 'main.rb' for your environment
+1. Configure 'main.rb` for your environment
 1. Start the Base-X server
 1. Run main.rb:
 
