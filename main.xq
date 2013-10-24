@@ -4,15 +4,18 @@ declare option output:cdata-section-elements "description";
 (: ----------- USER-DEFINED FUNCTIONS ----------- :)
 (: Returns digit from ISBN at specified index, 10 for X :)
 declare function local:isbnDigit($isbn, $index) as xs:integer{
-  if (fn:lower-case(fn:substring($isbn, $index, 1)) = 'x') then
-    xs:int(10)
-  else
-    xs:int(fn:substring($isbn, $index, 1))
+  let $digit := fn:lower-case(fn:substring($isbn, $index, 1))
+  return if ($digit = 'x') then
+	    xs:integer(10)
+    else if ($digit = '') then
+      xs:integer(0)
+    else
+      xs:integer($digit)
 };
 (: Returns the converted values of an ISBN13 string as an array :)
 declare function local:ISBN10Values($isbn10){
   let $isbn := fn:translate($isbn10, '-', '')
-  for $i in 1 to 9 
+  for $i in 1 to 10
   return local:isbnDigit($isbn, $i) * (10 - ($i - 1))
 };
 (: Returns the sum value for specified ISBN10 for calculating the checksum :)
@@ -21,13 +24,16 @@ declare function local:ISBN10CheckSum($isbn10) as xs:integer{
 };
 (: Checks if a specified ISBN10 is valid :)
 declare function local:isISBN10Valid($isbn10) as xs:boolean{
-  local:ISBN10CheckSum($isbn10) = 0
+  if ($isbn10 = '') then
+    false()
+  else
+    local:ISBN10CheckSum($isbn10) = 0
 };
 (: Returns the converted values of an ISBN13 string as an array :)
 declare function local:ISBN13Values($isbn13){
   let $isbn := fn:translate($isbn13, '-', '')
-  for $i in 1 to 12
-  return xs:integer(local:isbnDigit($isbn, $i) * (1 + (2 *(($i + 1) mod 2))))
+  for $i in 1 to 13
+  return local:isbnDigit($isbn, $i) * (1 + (2 *(($i + 1) mod 2)))
 };
 (: Returns the sum value for specified ISBN13 for calculating the checksum :)
 declare function local:ISBN13CheckSum($isbn13) as xs:integer{
@@ -35,7 +41,10 @@ declare function local:ISBN13CheckSum($isbn13) as xs:integer{
 };
 (: Checks if a specified ISBN13 is valid :)
 declare function local:isISBN13Valid($isbn13) as xs:boolean{
-  local:ISBN13CheckSum($isbn13) = 0
+  if ($isbn13 = '') then
+    false()
+  else
+    local:ISBN13CheckSum($isbn13) = 0
 };
 (: Converts an ISBN10 to an ISBN13  :)
 declare function local:ISBN10To13($isbn10) as xs:string{
@@ -111,8 +120,8 @@ declare function local:validPriceNodes($supplyDetailNode){
   	else if (count($supplyDetailNode/price[fn:lower-case(j152) = 'can' or fn:lower-case(currencycode) = 'can']) > 0) then
 	  	$supplyDetailNode/price[fn:lower-case(j152) = 'can' or fn:lower-case(currencycode) = 'can']
     else 
-      (: Return empty node :)
-      $supplyDetailNode/price[true = 'false']
+      (: Return first node found :)
+      $supplyDetailNode/price[1]
 };
 (: Determine price based on pricetypecode :)
 declare function local:evalPrice($supplyDetailNode){
@@ -179,25 +188,37 @@ let $PPN := local:eval((
 					$product/productidentifier[b221 = '01' or productidtype = '01']/idvalue,
 					$product/b007, 
 					$product/publisherproductno), '')
-let $ISBN10 := local:cleanText(local:eval(( 
+let $rawISBN10 := local:cleanText(local:eval(( 
 					$product/productidentifier[b221 = '02' or productidtype = '02']/b244, 
 					$product/productidentifier[b221 = '02' or productidtype = '02']/idvalue,
 					$product/b004, 
 					$product/isbn), ''))
-let $ISBN13Found := local:cleanText(local:eval((
+let $ISBN10 := if (local:isISBN10Valid($rawISBN10)) then
+                 $rawISBN10
+               else
+                 ''
+let $rawISBN13 := local:cleanText(local:eval((
 					$product/productidentifier[b221 = '03' or productidtype = '03']/b244, 
 					$product/productidentifier[b221 = '03' or productidtype = '03']/idvalue, 
 					$product/productidentifier[b221 = '15' or productidtype = '15']/b244, 
 					$product/productidentifier[b221 = '15' or productidtype = '15']/idvalue,
 					$product/b010, 
 					$product/replacesisbn), ''))
-let $ISBN13 := if (local:isISBN13Valid($ISBN13Found)) then
-            $ISBN13Found
-          else
-            local:ISBN10To13($ISBN10)
-let $EAN13 := local:cleanText(local:eval((
+let $rawEAN13 := local:cleanText(local:eval((
 					$product/b005, 
 					$product/ean1), ''))
+let $ISBN13 := if (local:isISBN13Valid($rawISBN13)) then
+                 $rawISBN13
+               else if (local:isISBN13Valid($rawEAN13)) then
+                 $rawEAN13
+               else
+                 local:ISBN10To13($ISBN10)
+let $EAN13 := if (local:isISBN13Valid($rawEAN13)) then
+                 $rawEAN13
+              else if (local:isISBN13Valid($ISBN13)) then
+                 $ISBN13
+              else
+                 ''
 let $UPC := local:eval((
 					$product/b006, 
 					$product/upc, 
@@ -213,17 +234,23 @@ let $DOI := local:eval((
 					$product/doi, 
 					$product/productidentifier[b221 = '06' or productidtype = '06']/b244, 
 					$product/productidentifier[b221 = '06' or productidtype = '06']/idvalue), '')
-let $LCCN := local:eval((
+let $rawLCCN := local:eval((
 					$product/productidentifier[b221 = '13' or productidtype = '13']/b244, 
 					$product/productidentifier[b221 = '13' or productidtype = '13']/idvalue), '')
+let $LCCN := if ($rawLCCN != '' and fn:string-length($rawLCCN) > 12) then
+               fn:translate($rawLCCN, '[] ', '')
+             else if (fn:string-length($rawLCCN) <= 50) then
+               $rawLCCN
+             else
+               ''
 let $GTIN14 := local:eval((
 					$product/productidentifier[b221 = '14' or productidtype = '14']/b244, 
 					$product/productidentifier[b221 = '14' or productidtype = '14']/idvalue), '')
-let $publisher := local:eval(( 
+let $publisher := fn:substring(local:eval(( 
 					$product/publisher/b08, 
 					$product/publisher/publishername,
 					$product/b081, 
-					$product/publishername), '')
+					$product/publishername), ''), 0, 100)
 let $format := local:eval((
 					$product/b012, 
 					$product/productform), '')
@@ -231,7 +258,7 @@ let $formDetail := fn:string-join(($product/b333/text(), $product/productformdet
 let $formatDescription := local:eval((
 					$product/b014, 
 					$product/productformdescription), '')
-let $seriesTitle := local:eval((
+let $rawSeriesTitle := local:eval((
 					$product/series/b018, 
 					$product/series/titleofseries, 
 					$product/series/title/b203,
@@ -242,7 +269,12 @@ let $seriesTitleNoPrefix := local:eval((
 let $seriesTitlePrefix := local:eval((
 					$product/series/title/b030,
 					$product/series/title/TitlePrefix), '')
-let $title := local:eval(( 
+let $seriesTitle := if ($rawSeriesTitle != '') then
+                $rawSeriesTitle
+              else
+                fn:concat($seriesTitlePrefix, ' ' ,$seriesTitleNoPrefix)
+let $npSeriesTitle := local:cleanText($seriesTitle) 
+let $rawTitle := local:eval(( 
 					$product/title/b203, 
 					$product/title/titletext,
 					$product/b028, 
@@ -253,15 +285,18 @@ let $titleNoPrefix := local:eval((
 let $titlePrefix := local:eval((
 					$product/title/b030, 
 					$product/title/TitlePrefix), '')
+let $title := if ($rawTitle != '') then
+                $rawTitle
+              else
+                fn:concat($titlePrefix, ' ', $titleNoPrefix)
 let $subtitle := local:eval(( 
 					$product/title/b029, 
 					$product/title/subtitle,
 					$product/b029, 
 					$product/subtitle), '')
 let $tTitle := local:stripArticles($title)
-let $nptTitle := local:cleanText($title)
+let $nptTitle := local:cleanText($tTitle)
 let $npSubtitle := local:cleanText($subtitle)
-let $npSeriesTitle := local:cleanText($seriesTitle)
 let $author := local:evalContributor($product/contributor, ('a01', 'a02', 'a03', 'a04', 'a05', 'a06', 'a07', 'a08', 'a09'))
 let $illustrator := local:evalContributor($product/contributor, ('a12'))
 let $translator := local:evalContributor($product/contributor, ('b06'))
@@ -278,17 +313,20 @@ let $bisac := local:evalAll((
 					$product/subject[b067 = '22' or subjectschemeidentifier = '22']/subjectcode, 
 					$product/subject[b067 = '22' or subjectschemeidentifier = '22']/b064, 
 					$product/subject[b067 = '22' or subjectschemeidentifier = '22']/basicmainsubject), ' ', '')
-let $edition := local:eval(($product/b058, $product/editionstatement), '')
+let $edition := fn:substring(local:eval((
+          $product/b058, 
+          $product/editionstatement), ''), 0, 512)
 let $description := local:evalAll((
 					$product/othertext/d104,
 					$product/othertext/text), '<hr>', '')
-let $imprint := local:eval((
+let $imprint := fn:substring(local:eval((
 					$product/imprint/b079, 
-					$product/imprint/imprintname), '')
-let $copyright := if (local:eval(($product/copyrightstatement/b079, $product/copyrightstatement/imprintname), '') != '') then
-					local:eval(($product/copyrightstatement/b079, $product/copyrightstatement/imprintname), '')
-				  else
-					local:eval(($product/b087, $product/b087), '')
+					$product/imprint/imprintname), ''), 0, 100)
+let $copyright := fn:substring(local:eval((
+          $product/copyrightstatement/b079, 
+          $product/copyrightstatement/imprintname,
+          $product/b087,
+          $product/copyrightyear), ''), 0, 32)
 let $height := local:eval((
 					$product/measure[c093 = '01' or measuretypecode = '01']/c094,
 					$product/measure[c093 = '01' or measuretypecode = '01']/measurement), '')
@@ -307,16 +345,16 @@ let $dimensionsUM := local:eval((
 let $weightUM := local:eval((
 					$product/measure[c093 = '08' or measuretypecode = '08']/c095,
 					$product/measure[c093 = '08' or measuretypecode = '08']/measureunitcode), '')
-let $supplier := local:eval((
+let $supplier := fn:substring(local:eval((
 					$product/supplydetail/j137,
 					$product/supplydetail/suppliername,
 					$product/j137, 
-					$product/suppliername), '')
+					$product/suppliername), ''), 0, 100)
 let $availability := local:eval((
 					$product/supplydetail/j396,
 					$product/supplydetail/j141,
 					$product/supplydetail/productavailability,
-					$product/supplydetail/availabilitycode), '')
+					$product/supplydetail/availabilitycode), 'CS')
 let $expected := local:eval((
 					$product/supplydetail/j142,
 					$product/supplydetail/expectedshipdate), '')
@@ -329,9 +367,9 @@ let $unadjustedPrice := local:eval((
 					$priceNode/j151,
 					$priceNode/priceamount), '')
 let $price := if (local:eval(($priceNode/j148, $priceNode/pricetypecode), '') = '05') then 
-				xs:decimal($unadjustedPrice) / 0.75
+				  xs:decimal($unadjustedPrice) / 0.75
 			  else
-				$unadjustedPrice
+				  $unadjustedPrice
 let $priceTypeCode := local:eval((
 					$priceNode/j148,
 					$priceNode/pricetypecode), '')
@@ -346,7 +384,11 @@ let $netPrice := if (count($netPriceNode) > 0) then
 					          xs:decimal($price) / 0.75
                  else 
                      ''
-let $deducedPrice := ''
+let $deducedPrice := if (count($netPriceNode) = 0 and 
+                         xs:decimal($priceTypeCode) = 11) then
+                       true()
+                     else
+                        false()
 return
 <record>
 <header>
@@ -360,7 +402,6 @@ return
   <PPN type="varchar">{$PPN}</PPN>
   <ISBN10 type="varchar">{$ISBN10}</ISBN10>
   <ISBN13 type="varchar">{$ISBN13}</ISBN13>
-  <ISBN13Found type="varchar" ignore="true">{$ISBN13Found}</ISBN13Found>
   <EAN13 type="varchar">{$EAN13}</EAN13>
   <UPC type="varchar">{$UPC}</UPC>
   <ISMN type="varchar">{$ISMN}</ISMN>
