@@ -375,6 +375,7 @@ return
   <seriesTitleNoPrefix type="varchar" ignore="true">{$seriesTitleNoPrefix}</seriesTitleNoPrefix>
   <seriesTitlePrefix type="varchar" ignore="true">{$seriesTitlePrefix}</seriesTitlePrefix>
   <title type="varchar">{$title}</title>
+  <subtitle type="varchar">{$subtitle}</subtitle>
   <titleNoPrefix type="varchar" ignore="true">{$titleNoPrefix}</titleNoPrefix>
   <titlePrefix type="varchar" ignore="true">{$titlePrefix}</titlePrefix>
   <tTitle type="varchar">{$tTitle}</tTitle>

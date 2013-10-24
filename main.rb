@@ -85,9 +85,9 @@ def import_to_database(record)
       value = Mysql.escape_string(node.text)
       case type
         when "decimal", "int", "bit"
-          values << (value != '')? value : "NULL"
+          values << ((value != '')? value : "NULL")
         else
-          values << "'#{value}'"
+          values << ((value != '')? "'#{value}'" : "NULL")
       end
     end
   end
