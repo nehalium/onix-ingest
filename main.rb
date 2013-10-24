@@ -19,61 +19,8 @@ require 'logger'
 require 'zip' #gem install rubyzip
 require 'nokogiri' #gem install nokogiri
 require 'mysql' #gem install mysql
-
-# Configuration
-SOURCE_DIR = "C:/Users/nehals/Desktop/Nehal/ONIX/source"
-TARGET_DIR = "C:/Users/nehals/Desktop/Nehal/ONIX/target"
-ARCHIVE_DIR = "C:/Users/nehals/Desktop/Nehal/ONIX/archive"
-LOG_DIR = "C:/Users/nehals/Desktop/Nehal/ONIX/log"
-BASEX_HOST = "localhost"
-BASEX_PORT = 1984
-BASEX_USERNAME = "admin"
-BASEX_PASSWORD = "admin"
-MYSQL_HOST = "localhost"
-MYSQL_USERNAME = "root"
-MYSQL_PASSWORD = "root"
-MYSQL_DATABASE = "onix"
-LOGGING_DAYS = 5
-VERBOSE_LOGGING = false
-
-
-# Utility function to create a directory
-def create_dir(target)
-  FileUtils.mkpath(target)
-end
-
-# Utility function to delete old log files
-def delete_old_logs(target)
-  Dir.glob(File.join(target, "*.log")).each do |file| 
-    File.delete(file) if (Time.now - File.ctime(file))/(24*3600) > LOGGING_DAYS 
-  end
-end
-
-# Initialize logger
-create_dir(LOG_DIR)
-delete_old_logs(LOG_DIR)
-$logger = Logger.new("#{LOG_DIR}/run_#{Time.now.strftime("%Y-%m-%d--%H-%M-%S")}.log")
-$logger.formatter = proc do |severity, datetime, progname, msg|
-   "[#{datetime}]:#{severity}::#{msg}"
-end
-
-# Logs info messages
-def loginfo(message)
-  print message
-  $logger.info(message)
-end
-
-# Logs warning messages
-def logwarn(message)
-  print message
-  $logger.warn(message)
-end 
-
-# Logs error messages
-def logerror(message)
-  print message
-  $logger.error(message)
-end 
+require './config.rb'
+require './logging.rb'
 
 def import_to_database(record)
   names = Array.new

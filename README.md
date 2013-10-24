@@ -11,10 +11,11 @@ A simple application for ingesting ONIX feeds.
 	* RubyZip: `gem install rubyzip`
 	* Nokogiri: `gem install nokogiri`
 	* MySQL: `gem install mysql`
+1. Clone source to installation directory
 
 # Usage
 
-1. Configure 'main.rb` for your environment
+1. Configure `config.rb` for your environment
 1. Start the Base-X server
 1. Run main.rb:
 
