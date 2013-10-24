@@ -22,6 +22,7 @@ require 'mysql' #gem install mysql
 require './config.rb'
 require './logging.rb'
 
+# Imports a given xquery result into the database
 def import_to_database(record)
   names = Array.new
   values = Array.new
@@ -59,10 +60,12 @@ ensure
   db.close if db
 end
 
+# Processes a record from the Base-X query
 def process_record(record)
   import_to_database(Nokogiri::XML(record))
 end
 
+# Runs query and imports the results
 def process_records(session)
   loginfo("Processing...\n")
   query = session.query(File.read(File.join(Dir.pwd, "main.xq")))
@@ -77,6 +80,7 @@ def print_records_in_aggregate(session)
   puts session.execute("RUN #{ROOT_DIR}\\basex\\test.xq")
 end
 
+# Opens a connection to Base-X and runs xquery
 def process(dir)
   session = BaseXClient::Session.new(BASEX_HOST, BASEX_PORT, BASEX_USERNAME, BASEX_PASSWORD)
   begin

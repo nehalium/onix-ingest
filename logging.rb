@@ -1,3 +1,7 @@
+#
+# Logs to a `log` directory
+# Creates a file for each run called run_YYYY-MM-DD--hh-mm-ss.log
+#
 # Utility function to create a directory
 def create_dir(target)
   FileUtils.mkpath(target)
