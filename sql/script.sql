@@ -37,6 +37,7 @@ CREATE TABLE `productmasterfile` (
   `FormDetail` varchar(500) DEFAULT NULL,
   `FormatDescription` varchar(200) DEFAULT NULL,
   `Availability` varchar(5) DEFAULT NULL,
+  `AvailabilityCode` varchar(5) DEFAULT NULL,
   `Expected` int(11) DEFAULT NULL,
   `Price` varchar(8) DEFAULT NULL,
   `NetPrice` varchar(8) DEFAULT NULL,

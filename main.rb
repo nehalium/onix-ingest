@@ -22,8 +22,13 @@ require 'mysql' #gem install mysql
 require './config.rb'
 require './logging.rb'
 
+def get_database_connection()
+  return Mysql.new(MYSQL_HOST, MYSQL_USERNAME, MYSQL_PASSWORD, MYSQL_DATABASE)
+end
+
 # Imports a given xquery result into the database
 def import_to_database(record)
+  loginfo("Importing product ref #{record.xpath("/record/product/ONIXProductRef").text}.\n", 2)
   names = Array.new
   values = Array.new
   record.xpath("/record/product/*").each do |node|
@@ -46,10 +51,8 @@ def import_to_database(record)
   
   sql = "INSERT INTO productmasterfile (#{names.join(',')}) VALUES (#{values.join(',')});"
 
-  if (VERBOSE_LOGGING)
-    loginfo("SQL: #{sql}\n")
-  end
-  db = Mysql.new(MYSQL_HOST, MYSQL_USERNAME, MYSQL_PASSWORD, MYSQL_DATABASE)
+  loginfo("SQL: #{sql}\n", 3)
+  db = get_database_connection()
   db.query(sql)
   #st = db.prepare(sql)
   #st.execute(values)
@@ -60,6 +63,18 @@ ensure
   db.close if db
 end
 
+# Truncates the database table
+def clear_database()
+  loginfo("Truncating table...", 1)
+  db = get_database_connection()
+  db.query("truncate productmasterfile;")
+  loginfo("Done.\n", 1)
+rescue Mysql::Error => e
+  logerror("[MYSQL] #{e.errno}:#{e.error}\n")
+ensure
+  db.close if db
+end
+
 # Processes a record from the Base-X query
 def process_record(record)
   import_to_database(Nokogiri::XML(record))
@@ -67,13 +82,13 @@ end
 
 # Runs query and imports the results
 def process_records(session)
-  loginfo("Processing...\n")
+  loginfo("Processing...\n", 1)
   query = session.query(File.read(File.join(Dir.pwd, "main.xq")))
   while query.more do
     process_record(query.next)
   end
   query.close()
-  loginfo("Done.\n")
+  loginfo("Done.\n", 1)
 end
 
 def print_records_in_aggregate(session)
@@ -82,16 +97,17 @@ end
 
 # Opens a connection to Base-X and runs xquery
 def process(dir)
+  clear_database()
   session = BaseXClient::Session.new(BASEX_HOST, BASEX_PORT, BASEX_USERNAME, BASEX_PASSWORD)
   begin
-    loginfo("Opening Base-X DB...")
+    loginfo("Opening Base-X DB...", 1)
     session.execute("CREATE DATABASE ONIX #{dir}")
     session.execute("OPEN ONIX")
-    loginfo("Done.\n")
+    loginfo("Done.\n", 1)
     process_records(session)
-    loginfo("Closing Base-X DB...")
+    loginfo("Closing Base-X DB...", 1)
     session.execute("DROP DB ONIX")
-    loginfo("Done.\n")
+    loginfo("Done.\n", 1)
   rescue Exception => e
     logerror("[BASEX] #{e.message}\n")
   ensure
@@ -105,18 +121,18 @@ end
 def archive_files(source, target)
   create_dir(target)
   Dir.glob(File.join(source, "**", "*.xml")).each do |file|
-    loginfo("Archiving #{file} to archive directory...")
+    loginfo("Archiving #{file} to archive directory...", 1)
     FileUtils.mv(file, target)
-    loginfo("Done.\n")
+    loginfo("Done.\n", 1)
   end
 end
 
 # Deletes zip files in a specified directory
 def delete_zips(target)
   Dir.glob(File.join(target, "*.zip")).each do |file|
-    loginfo("Deleting #{file}...")
+    loginfo("Deleting #{file}...", 1)
     FileUtils.rm(file)
-    loginfo("Done.\n")
+    loginfo("Done.\n", 1)
   end
   
 end
@@ -124,13 +140,13 @@ end
 # Unzips files in target directory
 def unzip_files(target)
   Dir.glob(File.join(target, "*.zip")).each do |file|
-    loginfo("Unzipping #{file}...")
+    loginfo("Unzipping #{file}...", 1)
     Zip::File.open(file) do |zipFile|
       zipFile.each do |zip|
         zipFile.extract(zip, File.join(target, zip.name))
       end
     end
-    loginfo("Done.\n")
+    loginfo("Done.\n", 1)
   end
 end
 
@@ -139,9 +155,9 @@ def copy_files(source, target)
   delete_files_in_dir(target)
   create_dir(target)
   Dir.glob(File.join(source, "**", "*.{zip,xml}")).each do |file|
-    loginfo("Copying #{file} to process directory...")
+    loginfo("Copying #{file} to process directory...", 1)
     FileUtils.cp(file, target)
-    loginfo("Done.\n")
+    loginfo("Done.\n", 1)
   end
 end
 

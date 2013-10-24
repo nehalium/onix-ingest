@@ -437,8 +437,10 @@ return
   <weight type="decimal">{$weight}</weight>
   <dimensionsUM type="varchar">{$dimensionsUM}</dimensionsUM>
   <weightUM type="varchar">{$weightUM}</weightUM>
-  <supplier type="varchar">{$supplier}</supplier>
+  <supplier type="varchar">{$publisher}</supplier>
+  <supplierOfOrigin type="varchar">{$supplier}</supplierOfOrigin>
   <availability type="varchar">{$availability}</availability>
+  <availabilityCode type="varchar">{$availability}</availabilityCode>
   <expected type="int">{$expected}</expected>
   <caseQty type="int">{$caseQty}</caseQty>
   <price type="varchar">{$price}</price>

@@ -23,9 +23,11 @@ $logger.formatter = proc do |severity, datetime, progname, msg|
 end
 
 # Logs info messages
-def loginfo(message)
-  print message
-  $logger.info(message)
+def loginfo(message, level)
+  if (level <= LOG_LEVEL)
+    print message
+    $logger.info(message)
+  end
 end
 
 # Logs warning messages
