@@ -13,5 +13,6 @@ MYSQL_HOST = "localhost"
 MYSQL_USERNAME = "root"
 MYSQL_PASSWORD = "root"
 MYSQL_DATABASE = "onix"
+TARGET_TABLE = "productmasterfile_stage"
 LOGGING_DAYS = 5
 LOG_LEVEL = 1

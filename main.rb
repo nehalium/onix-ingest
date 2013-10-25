@@ -27,15 +27,17 @@ def get_database_connection()
 end
 
 # Imports a given xquery result into the database
-def import_to_database(record)
+def import_to_database(record, db)
   loginfo("Importing product ref #{record.xpath("/record/product/ONIXProductRef").text}.\n", 2)
   names = Array.new
   values = Array.new
+  # Read each product child node ignoring those with attribute ignore="true"
   record.xpath("/record/product/*").each do |node|
     if (node.xpath("@ignore").text != "true")
       names << node.name
       type = node.xpath("@type").text
       value = Mysql.escape_string(node.text)
+      # String-ify if a string value, otherwise, take as is
       case type
         when "decimal", "int", "bit"
           values << ((value != '')? value : "NULL")
@@ -44,51 +46,49 @@ def import_to_database(record)
       end
     end
   end
+  # Include opened and updated timestamps
   names << "opened"
   values << "'#{Time.now.strftime("%Y-%m-%d %H:%M:%S")}'"
   names << "updated"
   values << "'#{Time.now.strftime("%Y-%m-%d %H:%M:%S")}'"
   
-  sql = "INSERT INTO productmasterfile (#{names.join(',')}) VALUES (#{values.join(',')});"
+  sql = "INSERT INTO #{TARGET_TABLE} (#{names.join(',')}) VALUES (#{values.join(',')});"
 
   loginfo("SQL: #{sql}\n", 3)
-  db = get_database_connection()
   db.query(sql)
-  #st = db.prepare(sql)
-  #st.execute(values)
-rescue Mysql::Error => e
-  logerror("[MYSQL] #{e.errno}:#{e.error}\n")
-ensure
-  #st.close if st
-  db.close if db
 end
 
 # Truncates the database table
-def clear_database()
+def clear_database(db)
   loginfo("Truncating table...", 1)
-  db = get_database_connection()
-  db.query("truncate productmasterfile;")
+  db.query("truncate #{TARGET_TABLE};")
   loginfo("Done.\n", 1)
-rescue Mysql::Error => e
-  logerror("[MYSQL] #{e.errno}:#{e.error}\n")
-ensure
-  db.close if db
 end
 
 # Processes a record from the Base-X query
-def process_record(record)
-  import_to_database(Nokogiri::XML(record))
+def process_record(record, db)
+  import_to_database(Nokogiri::XML(record), db)
 end
 
 # Runs query and imports the results
 def process_records(session)
-  loginfo("Processing...\n", 1)
+  # Read xquery file
   query = session.query(File.read(File.join(Dir.pwd, "main.xq")))
+  # Open database connection
+  db = get_database_connection()
+  clear_database(db)
+  loginfo("Processing...\n", 1)
+  # Loop through each result from xquery
   while query.more do
-    process_record(query.next)
+    process_record(query.next, db)
   end
-  query.close()
   loginfo("Done.\n", 1)
+rescue Mysql::Error => e
+  logerror("#{e.errno}:#{e.error}\n")
+  logerror("#{e.backtrace.join("\n")}\n")
+ensure
+  query.close() if query
+  db.close if db
 end
 
 def print_records_in_aggregate(session)
@@ -97,7 +97,6 @@ end
 
 # Opens a connection to Base-X and runs xquery
 def process(dir)
-  clear_database()
   session = BaseXClient::Session.new(BASEX_HOST, BASEX_PORT, BASEX_USERNAME, BASEX_PASSWORD)
   begin
     loginfo("Opening Base-X DB...", 1)
@@ -114,7 +113,8 @@ def process(dir)
     session.close if session
   end
 rescue Exception => e
-  logerror("[BASEX] #{e.message}\n")
+  logerror("#{e.message}\n")
+  logerror("#{e.backtrace.join("\n")}\n")
 end
 
 # Archives XML files to a specified directory
