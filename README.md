@@ -12,7 +12,7 @@ A simple application for ingesting ONIX feeds.
 	* Nokogiri: `gem install nokogiri`
 	* MySQL: `gem install mysql`
 1. Clone source to installation directory
-1. Make sure the database tables in sql/script.sql have been created
+1. Make sure the database objects in sql/script.sql have been created
 
 # Usage
 
