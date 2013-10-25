@@ -247,7 +247,7 @@ let $GTIN14 := local:eval((
 					$product/productidentifier[b221 = '14' or productidtype = '14']/b244, 
 					$product/productidentifier[b221 = '14' or productidtype = '14']/idvalue), '')
 let $publisher := fn:substring(local:eval(( 
-					$product/publisher/b08, 
+					$product/publisher/b081, 
 					$product/publisher/publishername,
 					$product/b081, 
 					$product/publishername), ''), 0, 100)
