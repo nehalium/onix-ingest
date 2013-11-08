@@ -1,10 +1,10 @@
 # 
 # Configuration for ONIX INGEST 
 #
-SOURCE_DIR = "C:/Users/nehals/Desktop/Nehal/ONIX/source"
-TARGET_DIR = "C:/Users/nehals/Desktop/Nehal/ONIX/target"
-ARCHIVE_DIR = "C:/Users/nehals/Desktop/Nehal/ONIX/archive"
-LOG_DIR = "C:/Users/nehals/Desktop/Nehal/ONIX/log"
+SOURCE_DIR = "C:/Users/nehals/Documents/ONIX/source"
+TARGET_DIR = "C:/Users/nehals/Documents/ONIX/target"
+ARCHIVE_DIR = "C:/Users/nehals/Documents/ONIX/archive"
+LOG_DIR = "C:/Users/nehals/Documents/ONIX/log"
 BASEX_HOST = "localhost"
 BASEX_PORT = 1984
 BASEX_USERNAME = "admin"

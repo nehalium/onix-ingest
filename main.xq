@@ -156,30 +156,29 @@ declare function local:evalNetPrice($supplyDetailNode){
 
 (: ----------- OUTPUT ----------- :)
 (: Pull in header data :)
-for $header in //header
 let $defaultPriceTypeCode := local:eval((
-					$header/m185, 
-					$header/defaultpricetypecode,
-          /m185,
-          /defaultpricetypecode), '01')
+					/ONIXmessage/header/m185, 
+					/ONIXmessage/header/defaultpricetypecode,
+          /ONIXmessage/m185,
+          /ONIXmessage/defaultpricetypecode), '01')
 let $defaultCurrencyCode := local:eval((
-					$header/m186, 
-					$header/defaultcurrencycode,
-          /m186,
-          /defaultcurrencycode), 'USD')
+					/ONIXmessage/header/m186, 
+					/ONIXmessage/header/defaultcurrencycode,
+          /ONIXmessage/m186,
+          /ONIXmessage/defaultcurrencycode), 'USD')
 let $defaultLinearUnit := local:eval((
-					$header/m187, 
-					$header/defaultlinearunit,
-          /m187,
-          /defaultlinearunit), 'in')
+					/ONIXmessage/header/m187, 
+					/ONIXmessage/header/defaultlinearunit,
+          /ONIXmessage/m187,
+          /ONIXmessage/defaultlinearunit), 'in')
 let $defaultWeightUnit := local:eval((
-					$header/m188, 
-					$header/defaultweightunit,
-          /m188,
-          /defaultweightunit), 'oz')
+					/ONIXmessage/header/m188, 
+					/ONIXmessage/header/defaultweightunit,
+          /ONIXmessage/m188,
+          /ONIXmessage/defaultweightunit), 'oz')
 
 (: Pull in product detail data :)
-for $product in //product
+for $product in /ONIXmessage/product
 let $productRef := local:eval((
 					$product/a001, 
 					$product/recordreference), '')
